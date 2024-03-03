@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.reggie.Entity.Employee;
 import com.example.reggie.common.Result;
 import com.example.reggie.service.EmployeeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 
+@Slf4j
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
@@ -48,5 +51,33 @@ public class EmployeeController {
     public Result<String> logout(HttpServletRequest httpServletRequest){
         httpServletRequest.getSession().removeAttribute("employee");
         return Result.success("退出成功");
+    }
+
+    /**
+     *根据输入的员工信息添加员工 post
+     * @param request
+     * @param employee
+     * @return
+     */
+
+    @PostMapping
+    public Result<String>save(HttpServletRequest httpServletRequest,@RequestBody Employee employee) {
+        //log记录新增的员工信息：{} 是实体tostring
+        log.info("新增的员工信息：{}",employee.toString());
+        //设置默认密码为123456，并采用MD5加密
+        employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
+        //设置createTime和updateTime
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+        //根据session来获取创建人的id
+        Long empid= (Long) httpServletRequest.getSession().getAttribute("employee");
+        log.info("操作人是员工：{}",empid);
+        employee.setCreateUser(empid);
+        employee.setUpdateUser(empid);
+        //并设置
+        //存入数据库
+        employeeService.save(employee);
+        //返回成功添加
+        return Result.success("添加成功");
     }
 }
