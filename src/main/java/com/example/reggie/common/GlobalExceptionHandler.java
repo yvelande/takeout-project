@@ -12,8 +12,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public Result<String>exceptionHandler(SQLIntegrityConstraintViolationException exception) {
-        //log后面用exceoption的message
-        log.info("出现的错误是:{}", exception.getMessage());
+
+        //log后面用exceoption的message 注意是logerror
+        log.error(exception.getMessage());
         //如果包含Duplicate entry，则说明有条目重复
         if (exception.getMessage().contains("Duplicate entry")) {
             //对字符串切片
@@ -27,5 +28,11 @@ public class GlobalExceptionHandler {
         //如果是别的错误那我也没招儿了
         return Result.error("未知错误");
 
+    }
+
+    @ExceptionHandler(CustomException.class)
+    public Result<String>exceptionHandler(CustomException exception){
+        log.error(exception.getMessage());
+        return Result.error(exception.getMessage());
     }
 }
