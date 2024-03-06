@@ -8,4 +8,7 @@ import com.example.reggie.dto.DishDto;
 public interface DishService extends IService<Dish> {
 
     void saveWithFlavors(DishDto dishDto);
+    DishDto getByIdWithFlavor(Long id);
+
+    void updateWithFlavor(DishDto dishDto);
 }

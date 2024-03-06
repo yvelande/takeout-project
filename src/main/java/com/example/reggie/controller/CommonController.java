@@ -51,6 +51,9 @@ public class CommonController {
         FileInputStream fis= null;
         ServletOutputStream os= null;
         try {
+
+            if(!new File(basepath+name).exists())
+                return;
             fis = new FileInputStream(new File(basepath+name));
             os = httpServletResponse.getOutputStream();
             int len=0;
