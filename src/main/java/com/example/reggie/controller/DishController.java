@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.Entity.Category;
 import com.example.reggie.Entity.Dish;
+import com.example.reggie.Entity.DishFlavor;
 import com.example.reggie.common.Result;
 import com.example.reggie.dto.DishDto;
 import com.example.reggie.dto.SetmealDto;
@@ -12,9 +13,11 @@ import com.example.reggie.service.DishFlavorService;
 import com.example.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,12 +101,31 @@ public class DishController {
      * @return
      */
     @GetMapping("/list")
-    public Result<List<Dish>> list(Dish dish){
+    public Result<List<DishDto>> list(Dish dish){
         //根据dish的分类找到分类所有的菜品
         log.info("获得的菜品分类信息如下{}",dish);
         LambdaQueryWrapper<Dish>lqw=new LambdaQueryWrapper<>();
         lqw.eq(dish.getCategoryId()!=null,Dish::getCategoryId,dish.getCategoryId());
-        return Result.success(dishService.list(lqw));
+        lqw.eq(Dish::getStatus,1);
+        lqw.orderByDesc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+        List<Dish>list=dishService.list(lqw);
+        log.info("查询到的菜品信息list:{}",list);
+
+        //设置categoryName
+        List<DishDto>dishDtoList=list.stream().map((item)->{
+            DishDto dishDto=new DishDto();
+            Category category=categoryService.getById(item.getCategoryId());
+            if(category!=null)
+                dishDto.setCategoryName(category.getName());
+            //获取flavors进行设置
+            LambdaQueryWrapper<DishFlavor>lambdaQueryWrapper=new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(DishFlavor::getDishId,dish.getId());
+            List<DishFlavor>dishFlavorList=dishFlavorService.list(lambdaQueryWrapper);
+            dishDto.setFlavors(dishFlavorList);
+            return dishDto;
+        }).collect(Collectors.toList());
+        return Result.success(dishDtoList);
+
     }
 
 }

@@ -3,13 +3,17 @@ package com.example.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.Entity.Category;
+import com.example.reggie.Entity.Dish;
+import com.example.reggie.Entity.DishFlavor;
 import com.example.reggie.common.Result;
+import com.example.reggie.dto.DishDto;
 import com.example.reggie.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
