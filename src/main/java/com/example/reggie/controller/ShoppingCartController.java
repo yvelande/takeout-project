@@ -27,7 +27,7 @@ public class ShoppingCartController {
         //判断是dish还是setmeal
         Long id=shoppingCart.getDishId();
         LambdaQueryWrapper<ShoppingCart>lqw=new LambdaQueryWrapper<>();
-        if(id==null){
+        if(id!=null){
             lqw.eq(ShoppingCart::getDishId,id);
         }else{
             lqw.eq(ShoppingCart::getSetmealId,shoppingCart.getSetmealId());
@@ -37,10 +37,12 @@ public class ShoppingCartController {
         if(currentShopping!=null){
             Integer number=currentShopping.getNumber();
             currentShopping.setNumber(number+1);
+            log.info("添加一个条目");
             shoppingCartService.updateById(currentShopping);
         }else{
             shoppingCart.setCreateTime(LocalDateTime.now());
             shoppingCartService.save(shoppingCart);
+            log.info("新建一个条目");
             currentShopping=shoppingCart;
         }
         return Result.success(currentShopping);
@@ -65,6 +67,27 @@ public class ShoppingCartController {
         //删除当前用户id的所有购物车数据
         shoppingCartService.remove(queryWrapper);
         return Result.success("成功清空购物车");
+    }
+
+    @PostMapping("/sub")
+    public Result<ShoppingCart> sub(@RequestBody ShoppingCart shoppingCart) {
+        Long userId=BaseContext.getCurrentId();
+        LambdaQueryWrapper<ShoppingCart>lqw=new LambdaQueryWrapper<>();
+        lqw.eq(userId!=null,ShoppingCart::getUserId,userId);
+        if(shoppingCart.getDishId()!=null)
+            lqw.eq(ShoppingCart::getDishId,shoppingCart.getDishId());
+        else
+            lqw.eq(ShoppingCart::getSetmealId,shoppingCart.getSetmealId());
+        ShoppingCart currentCart=shoppingCartService.getOne(lqw);
+        currentCart.setNumber(currentCart.getNumber()-1);
+        log.info("现在的大小是",currentCart.getNumber());
+        if(currentCart.getNumber()==0){
+            shoppingCartService.removeById(currentCart.getId());
+            Result.success(currentCart);}
+        else if(currentCart.getNumber()>0){
+            shoppingCartService.updateById(currentCart);
+        return Result.success(currentCart);}
+        return Result.error("操作异常");
     }
 
 }

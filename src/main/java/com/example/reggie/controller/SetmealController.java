@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.Entity.Category;
 import com.example.reggie.Entity.Dish;
 import com.example.reggie.Entity.Setmeal;
+import com.example.reggie.Entity.SetmealDish;
 import com.example.reggie.common.Result;
+import com.example.reggie.dto.DishDto;
 import com.example.reggie.dto.SetmealDto;
 import com.example.reggie.service.CategoryService;
 import com.example.reggie.service.DishService;
@@ -28,6 +30,9 @@ public class SetmealController {
     private SetmealService setmealService;
     @Autowired
     private SetmealDishService setmealDishService;
+
+    @Autowired
+    private DishService dishService;
 
     @Autowired
     private CategoryService categoryService;
@@ -77,4 +82,21 @@ public class SetmealController {
         return Result.success(list);
     }
 
+    @GetMapping("/dish/{id}")
+    public Result<List<DishDto>> showSetmealDish(@PathVariable Long id) {
+        LambdaQueryWrapper<SetmealDish>lqw=new LambdaQueryWrapper<SetmealDish>();
+        lqw.eq(SetmealDish::getSetmealId,id);
+        List<SetmealDish>records=setmealDishService.list(lqw);
+        //获得所有setmealDish
+        List<DishDto>list=records.stream().map((item)->{
+          Long dishId=item.getDishId();
+          Dish dish=dishService.getById(dishId);
+          DishDto dishDto=new DishDto();
+          //copy套餐的口味
+            BeanUtils.copyProperties(item,dishDto);
+          BeanUtils.copyProperties(dish,dishDto);
+          return dishDto;
+        }).collect(Collectors.toList());
+        return Result.success(list);
+    }
 }
