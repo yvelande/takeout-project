@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Result<T> {
+public class Result<T> implements Serializable {
     private Integer code;  // 编码：1成功。0和其他数字失败
     private String errMsg;  // 错误信息
     private T data; // 数据

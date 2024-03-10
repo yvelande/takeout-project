@@ -17,6 +17,8 @@ import com.example.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,6 +40,7 @@ public class SetmealController {
     @Autowired
     private CategoryService categoryService;
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @PostMapping
     public Result<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("套餐信息：{}", setmealDto);
@@ -73,6 +76,7 @@ public class SetmealController {
         return Result.success("删除成功");
     }
 
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId + '_' + #setmeal.status")
     @GetMapping("/list")
     public Result<List<Setmeal>> list(Setmeal setmeal) {
         LambdaQueryWrapper<Setmeal>lqw=new LambdaQueryWrapper<>();
@@ -101,6 +105,7 @@ public class SetmealController {
         return Result.success(list);
     }
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @PostMapping("/status/{status}")
     public Result<String> status(@PathVariable String status, @RequestParam List<Long> ids) {
         LambdaUpdateWrapper<Setmeal> updateWrapper = new LambdaUpdateWrapper<>();
@@ -123,6 +128,7 @@ public class SetmealController {
         return Result.success(setmealDto);
     }
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @PutMapping
     public Result<Setmeal> updateWithDish(@RequestBody SetmealDto setmealDto) {
         List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
