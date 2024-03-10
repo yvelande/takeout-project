@@ -69,28 +69,28 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
             return orderDetail;
         }).collect(Collectors.toList());
         orderDetailService.saveBatch(list);
-
-
-        User user=userService.getById(userId);
-//        log.info(user.toString());
-        orders.setId(orderId);
-        orders.setNumber(String.valueOf(orderId));
-        orders.setStatus(2);
-        orders.setUserId(userId);
-        orders.setAddressBookId(addressBook.getId());
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setCheckoutTime(LocalDateTime.now());
-        orders.setAmount(new BigDecimal(amount.get()));
-        orders.setPhone(addressBook.getPhone());
-        orders.setUserName("李先生");
-        orders.setConsignee(addressBook.getConsignee());
-        orders.setAddress(((addressBook.getProvinceName()==null)?"":addressBook.getProvinceName())
-                +((addressBook.getCityName()==null)?"":addressBook.getCityName())+
-                (addressBook.getDistrictName()==null?"":addressBook.getDistrictName())+
-                (addressBook.getDetail()==null?"":addressBook.getDetail())
-        );
-        this.save(orders);
-        //清空购物车
-        shoppingCartService.remove(lqw);
+//
+//
+//        User user=userService.getById(userId);
+////        log.info(user.toString());
+//        orders.setId(orderId);
+//        orders.setNumber(String.valueOf(orderId));
+//        orders.setStatus(2);
+//        orders.setUserId(userId);
+//        orders.setAddressBookId(addressBook.getId());
+//        orders.setOrderTime(LocalDateTime.now());
+//        orders.setCheckoutTime(LocalDateTime.now());
+//        orders.setAmount(new BigDecimal(amount.get()));
+//        orders.setPhone(addressBook.getPhone());
+//        orders.setUserName("李先生");
+//        orders.setConsignee(addressBook.getConsignee());
+//        orders.setAddress(((addressBook.getProvinceName()==null)?"":addressBook.getProvinceName())
+//                +((addressBook.getCityName()==null)?"":addressBook.getCityName())+
+//                (addressBook.getDistrictName()==null?"":addressBook.getDistrictName())+
+//                (addressBook.getDetail()==null?"":addressBook.getDetail())
+//        );
+//        this.save(orders);
+//        //清空购物车
+//        shoppingCartService.remove(lqw);
     }
 }

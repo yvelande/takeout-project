@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -83,5 +84,31 @@ public class OrderController {
         }).collect(Collectors.toList());
         shoppingCartService.saveBatch(shoppingCartList);
         return Result.success("喜欢吃就再来一单吖~");
+    }
+
+    @GetMapping("/page")
+    public Result<Page> page(int page, int pageSize, Long number, String beginTime, String endTime){
+        Page<Orders>pageInfo=new Page<>(page,pageSize);
+        LambdaQueryWrapper<Orders>lqw=new LambdaQueryWrapper<>();
+        lqw.eq(number!=null,Orders::getId,number);
+        lqw.orderByDesc(Orders::getOrderTime);
+        lqw.gt(!StringUtils.isEmpty(beginTime),Orders::getOrderTime,beginTime).lt(
+                !StringUtils.isEmpty(endTime),Orders::getOrderTime,endTime
+        );
+        orderService.page(pageInfo,lqw);
+        Page<OrdersDto>ordersDtoPage=new Page<>(page,pageSize);
+        BeanUtils.copyProperties(pageInfo,ordersDtoPage,"records");
+        List<Orders>list=pageInfo.getRecords();
+        List<OrdersDto>ordersDtoList=list.stream().map((item)->{
+            OrdersDto ordersDto=new OrdersDto();
+            BeanUtils.copyProperties(item,ordersDto);
+            LambdaQueryWrapper<OrderDetail>lambdaQueryWrapper=new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(OrderDetail::getOrderId,item.getId());
+            List<OrderDetail>orderDetails=orderDetailService.list(lambdaQueryWrapper);
+            ordersDto.setOrderDetails(orderDetails);
+            return ordersDto;
+        }).collect(Collectors.toList());
+        ordersDtoPage.setRecords(ordersDtoList);
+        return Result.success(ordersDtoPage);
     }
 }

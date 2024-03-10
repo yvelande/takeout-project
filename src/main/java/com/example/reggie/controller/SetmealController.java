@@ -1,6 +1,7 @@
 package com.example.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.Entity.Category;
 import com.example.reggie.Entity.Dish;
@@ -98,5 +99,47 @@ public class SetmealController {
           return dishDto;
         }).collect(Collectors.toList());
         return Result.success(list);
+    }
+
+    @PostMapping("/status/{status}")
+    public Result<String> status(@PathVariable String status, @RequestParam List<Long> ids) {
+        LambdaUpdateWrapper<Setmeal> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.in(Setmeal::getId, ids);
+        //直接set
+        updateWrapper.set(Setmeal::getStatus, status);
+        setmealService.update(updateWrapper);
+        return Result.success("批量操作成功");
+    }
+
+    @GetMapping("/{id}")
+    public Result<SetmealDto> getById(@PathVariable Long id) {
+        Setmeal setmeal=setmealService.getById(id);
+        SetmealDto setmealDto=new SetmealDto();
+        BeanUtils.copyProperties(setmeal,setmealDto);
+        LambdaQueryWrapper<SetmealDish>lqw=new LambdaQueryWrapper<>();
+        lqw.eq(SetmealDish::getSetmealId,id);
+        List<SetmealDish>setmealDishes=setmealDishService.list(lqw);
+        setmealDto.setSetmealDishes(setmealDishes);
+        return Result.success(setmealDto);
+    }
+
+    @PutMapping
+    public Result<Setmeal> updateWithDish(@RequestBody SetmealDto setmealDto) {
+        List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        Long setmealId = setmealDto.getId();
+        //先根据id把setmealDish表中对应套餐的数据删了
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,setmealId);
+        setmealDishService.remove(queryWrapper);
+        //然后在重新添加
+        setmealDishes = setmealDishes.stream().map((item) ->{
+            item.setSetmealId(setmealId);
+            return item;
+        }).collect(Collectors.toList());
+        //更新套餐数据
+        setmealService.updateById(setmealDto);
+        //更新套餐对应菜品数据
+        setmealDishService.saveBatch(setmealDishes);
+        return Result.success(setmealDto);
     }
 }
