@@ -2,6 +2,7 @@ package com.example.reggie.controller;
 
 import ch.qos.logback.core.hook.ShutdownHook;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.Entity.OrderDetail;
 import com.example.reggie.Entity.Orders;
@@ -110,5 +111,16 @@ public class OrderController {
         }).collect(Collectors.toList());
         ordersDtoPage.setRecords(ordersDtoList);
         return Result.success(ordersDtoPage);
+    }
+
+    @PutMapping
+    public Result<String> changeStatus(@RequestBody Map<String, String> map) {
+        int status= Integer.parseInt(map.get("status"));
+        Long orderId= Long.valueOf(map.get("id"));
+        LambdaUpdateWrapper<Orders>luw=new LambdaUpdateWrapper<>();
+        luw.eq(orderId!=null,Orders::getId,orderId);
+        luw.set(Orders::getStatus,status);
+        orderService.update(luw);
+        return Result.success("订单状态修改成功");
     }
 }
